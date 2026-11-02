@@ -15,14 +15,14 @@ try:
         "SELECT e.*, i.title, i.url, i.source, i.published FROM events e JOIN items i ON i.id=e.item_id",
         con,
     )
-    stats = pd.read_sql("SELECT COUNT(*) n, SUM(relevant) rel FROM items", con).iloc[0]
+    stats = pd.read_sql("SELECT COUNT(*) n, SUM(status='done') rel FROM items", con).iloc[0]
 except Exception:
     st.info("No data yet. Run `python pipeline.py` first.")
     st.stop()
 
 c1, c2, c3 = st.columns(3)
 c1.metric("Items screened", int(stats.n or 0))
-c2.metric("Credit-relevant", int(stats.rel or 0))
+c2.metric("Assessed", int(stats.rel or 0))
 c3.metric("High severity (4-5)", int((df.severity >= 4).sum()))
 
 with st.sidebar:
@@ -49,5 +49,9 @@ for _, r in view.iterrows():
     with st.expander(f"{icons[r.direction]} sev {r.severity} · {r.ticker} · {r.event_type} · {r.title[:90]}"):
         st.write(r.summary)
         st.caption(f"Rationale: {r.rationale}")
-        st.caption(f"Source: {r.source} · {r.published} · filing read: {'yes' if r.checked_filing else 'no'}")
+        cov = f" ({r.filing_coverage:.0%} of filing)" if pd.notna(r.get("filing_coverage")) else ""
+        st.caption(f"Source: {r.source} · {r.published} · filing read: "
+                   f"{'yes' if r.checked_filing else 'no'}{cov}")
+        if r.get("tools_used"):
+            st.caption(f"Agent steps: {r.tools_used.replace(',', ' → ')}")
         st.markdown(f"[Open source]({r.url})")

@@ -1,0 +1,10 @@
+langchain>=1.0
+langchain-openai>=1.0
+langchain-anthropic>=1.0
+pydantic>=2.7
+requests>=2.31
+feedparser>=6.0
+beautifulsoup4>=4.12
+python-dotenv>=1.0
+streamlit>=1.38
+pandas>=2.2
